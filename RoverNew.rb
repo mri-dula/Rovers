@@ -14,13 +14,11 @@ class Grid
 	end
 
 	def isOccupied(posx,posy) #Returns true if the point in the grid is occupied.
-		return true  if @@position.key? [posx,posy]
-		return false
+		@@position.key? [posx,posy]
 	end
 
 	def isOutofGrid(posx,posy) #Returns true if the point is not in the grid.
-		return true  if (((posx > @@maxx) or (posy > @@maxy)) or ((posx < 0) or (posy <0)))
-		return false
+		(((posx > @@maxx) or (posy > @@maxy)) or ((posx < 0) or (posy <0)))
 	end
 
 	def Grid.listAllRovers() #Lists all the positions of the grid that are currently occupied.
