@@ -19,7 +19,7 @@ class Grid
 		@@maxy = y
 	end
 
-	def isOutofGrid(posx,posy) #Returns true if the point is not in the grid.
+	def isoutofgrid?(posx,posy) #Returns true if the point is not in the grid.
 		(((posx > @@maxx) or (posy > @@maxy)) or ((posx < 0) or (posy <0)))
 	end
 end
@@ -44,10 +44,9 @@ class Rover
 	end	
 
 	def Rover.deployNewRover(theGrid,posx,posy)
-		if not theGrid.isOutofGrid(posx,posy)
-			new(posx,posy) 
-		else 
+		if theGrid.isoutofgrid?(posx,posy) 
 			puts "Error! The position is out of the grid..."
+		else Rover.new(posx, posy)
 		end
 	end
 
@@ -74,7 +73,7 @@ class Rover
 		when :E
 			newX = @pos.xpos + 1
 		end
-		if theGrid.isOutofGrid(newX,newY)
+		if theGrid.isoutofgrid?(newX,newY)
 			puts "Error! The destination is out of the grid..."
 		else
 			@pos.changePosition(newX, newY) { puts "Rover moved to (#{newX}, #{newY})" }
