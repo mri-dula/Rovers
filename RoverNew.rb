@@ -5,7 +5,7 @@ class Position
     @ypos = y
   end
 
-  def changeposition(posx,posy) #Changes any the occupancy of a point in the grid from true to false and vice versa.
+  def change(posx,posy) 
     @xpos = posx
     @ypos = posy
     yield
@@ -18,15 +18,17 @@ class Grid
     @@maxy = y
   end
 
-  def isoutofgrid?(posx,posy) #Returns true if the point is not in the grid.
+  def outside?(posx,posy) 
     (((posx > @@maxx) or (posy > @@maxy)) or ((posx < 0) or (posy <0)))
   end
 end
 
-#Need to rewrite function to display all positions of rovers...
-
-class Rover 
-  @@NewDirectionMappings = { #This is a class variable containing the new direction of the rover giving the current direction and the turn.
+class Direction
+  attr_reader :dir, :NEW_DIRECTION_MAPPINGS
+  attr_writer :dir
+  def initialize
+    @dir = :N
+    @@NEW_DIRECTION_MAPPINGS = { 
       [:N, :L] => :W,
       [:N, :R] => :E,
       [:W, :L] => :S,
@@ -36,33 +38,47 @@ class Rover
       [:E, :L] => :N,
       [:E, :R] => :S
       }
-  def initialize(posx,posy) #Places a rover on the grid.
-    @dir = :N
-    puts "Success! Rover deployed at (#{posx},#{posy})"
+  end
+
+  def map_new(side)
+    @@NEW_DIRECTION_MAPPINGS[[@dir,side]]
+  end
+end
+
+class Rover 
+  def initialize(posx,posy) 
+    @orientation = Direction.new
+    puts "Success! Rover deployed at (#{posx},#{posy})."
     @pos = Position.new(posx,posy)
   end	
 
-  def Rover.deploynewrover(theGrid,posx,posy)
-    if theGrid.isoutofgrid?(posx,posy) 
+  def Rover.deploy_new(theGrid,init_position = {:coordinates => [0,0]})
+
+    posx = init_position[:coordinates][0]
+    posy = init_position[:coordinates][1]
+
+    if theGrid.outside?(posx, posy) 
       puts "Error! The position is out of the grid..."
-    else Rover.new(posx, posy)
+    else 
+      Rover.new(posx, posy)
     end
+
   end
 
-  def getdirection(d)
-    if d == :M
-      newDir = @dir
-    else
-      newDir = @@NewDirectionMappings[[@dir, d]]
-    end
-    return newDir
+  def turn_left
+    @orientation.dir = @orientation.map_new(:L)
+    puts "Rover turned to face #{@orientation.dir}."
   end
 
-  def moverover(theGrid,d) #Calculates the new position of the rover given the new direction and moves it there.
-	  newDir = getdirection(d)
+  def turn_right
+    @orientation.dir = @orientation.map_new(:R)
+    puts "Rover turned to face #{@orientation.dir}."
+  end
+
+  def step(theGrid) 
     newX = @pos.xpos
     newY = @pos.ypos
-    case newDir
+    case @orientation.dir
     when :N
       newY = @pos.ypos + 1
     when :W
@@ -72,23 +88,36 @@ class Rover
     when :E
       newX = @pos.xpos + 1
     end
-    if theGrid.isoutofgrid?(newX,newY)
+    if theGrid.outside?(newX,newY)
       puts "Error! The destination is out of the grid..."
     else
-      @pos.changeposition(newX, newY) { puts "Rover moved to (#{newX}, #{newY})" }
-      @dir = newDir
+      @pos.change(newX, newY) { puts "Rover stepped to (#{newX}, #{newY})" }
     end
+  end
+
+  def move(theGrid, d_input)
+    case d_input
+    when :R
+      turn_right
+    when :L
+      turn_left
+    end
+    step(theGrid)
+  end
+
+  def current_position
+    puts "The current position: " + [@pos.xpos, @pos.ypos].to_s
   end
 end
 
-
 grid = Grid.new(5,5)
-rover1 = Rover.deploynewrover(grid,0,0)
-rover1.moverover(grid,:R)
-rover1.moverover(grid,:M)
-rover1.moverover(grid,:L)
-rover1.moverover(grid,:M)
-rover1.moverover(grid,:R)
-rover1.moverover(grid,:M)
-rover2 = Rover.deploynewrover(grid,1,3)
-rover3 = Rover.deploynewrover(grid,5,5)
+rover1 = Rover.deploy_new(grid)
+rover1.move(grid,:R)
+rover1.move(grid,:A)
+rover1.move(grid,:L)
+rover1.move(grid,:A)
+rover1.move(grid,:R)
+rover1.move(grid,:A)
+rover1.current_position
+rover2 = Rover.deploy_new(grid, :coordinates => [2,1])
+rover3 = Rover.deploy_new(grid)
